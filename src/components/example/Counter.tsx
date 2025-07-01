@@ -1,14 +1,15 @@
 'use client';
 
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/store';
-import { increment, decrement } from '@/store/features/counter/counterSlice';
+import { RootState } from '@/redux/store';
+import { increment, decrement } from '@/redux/features/CounterSlice';
 import { Button } from '../ui/button';
 
 const Counter = () => {
   const count = useSelector((state: RootState) => state.counter.value);
   const dispatch = useDispatch();
 
+  
   return (
     <div>
       <h2>Counter</h2>

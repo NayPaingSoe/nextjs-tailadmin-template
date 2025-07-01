@@ -1,9 +1,9 @@
 import { Outfit } from 'next/font/google';
 import './globals.css';
 
-import { ReduxProvider } from '@/components/common/ReduxProvider';
 import { SidebarProvider } from '@/context/SidebarContext';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { Providers } from '@/redux/provider';
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -19,7 +19,7 @@ export default function RootLayout({
       <body className={`${outfit.className} dark:bg-gray-900`}>
         <ThemeProvider>
           <SidebarProvider>
-            <ReduxProvider>{children}</ReduxProvider>
+            <Providers>{children}</Providers>
           </SidebarProvider>
         </ThemeProvider>
       </body>

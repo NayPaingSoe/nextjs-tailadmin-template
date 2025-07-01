@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import SamplePosts from "@/components/example/SamplePosts";
+import SampleUsers from "@/components/example/SampleUsers";
 export const metadata: Metadata = {
   title: "Next.js Blank Page | TailAdmin - Next.js Dashboard Template",
   description: "This is Next.js Blank Page TailAdmin Dashboard Template",
@@ -85,6 +87,8 @@ export default function BlankPage() {
           </CardFooter>
         </Card>
         <Counter />
+        {/* <SamplePosts /> */}
+        <SampleUsers />
 
 
 
