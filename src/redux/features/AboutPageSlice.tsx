@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { fetchContent, postContent } from "./ContentUtilSlice";
 
 interface AboutContent {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface AboutState {
@@ -40,6 +40,17 @@ export const { setContentStart, setContentSuccess, setContentFailure } = aboutSl
 
 export const fetchAboutContent = (uri: string) => fetchContent(uri, setContentStart, setContentSuccess, setContentFailure);
 
-export const postAboutContent = (uri: string, formData: any) => postContent(uri, formData, setContentStart, setContentSuccess, setContentFailure);
+export const postAboutContent = (uri: string, formData: AboutContent) => {
+  const fd = new FormData();
+  Object.keys(formData).forEach(key => {
+    const value = formData[key];
+    if (typeof value === 'string') {
+      fd.append(key, value);
+    } else if (value instanceof Blob) {
+      fd.append(key, value);
+    }
+  });
+  return postContent(uri, fd, setContentStart, setContentSuccess, setContentFailure);
+};
 
 export default aboutSlice.reducer;

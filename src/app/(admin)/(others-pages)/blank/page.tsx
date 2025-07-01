@@ -1,20 +1,6 @@
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import Counter from "@/components/example/Counter";
 import { Metadata } from "next";
 import React from "react";
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import SamplePosts from "@/components/example/SamplePosts";
 import SampleUsers from "@/components/example/SampleUsers";
 export const metadata: Metadata = {
   title: "Next.js Blank Page | TailAdmin - Next.js Dashboard Template",
@@ -27,20 +13,19 @@ export default function BlankPage() {
       <PageBreadcrumb pageTitle="Blank Page" />
       <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
 
-        <div className="mx-auto w-full max-w-[630px] text-center">
+        {/* <div className="mx-auto w-full max-w-[630px] text-center">
           <h3 className="mb-4 font-semibold text-gray-800 text-theme-xl dark:text-white/90 sm:text-2xl">
             Card Title Here
           </h3>
-
           <p className="text-sm text-gray-500 dark:text-gray-400 sm:text-base">
             Start putting content on grids or panels, you can also use different
             combinations of grids.Please check out the dashboard and other pages
           </p>
-        </div>
+        </div> */}
 
 
 
-        <Card className="w-full max-w-sm">
+        {/* <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle>Login to your account</CardTitle>
             <CardDescription>
@@ -85,8 +70,8 @@ export default function BlankPage() {
               Login with Google
             </Button>
           </CardFooter>
-        </Card>
-        <Counter />
+        </Card> */}
+        {/* <Counter /> */}
         {/* <SamplePosts /> */}
         <SampleUsers />
 

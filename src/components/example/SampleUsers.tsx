@@ -1,12 +1,27 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  useGetUsersQuery, 
-  useCreateUserMutation, 
-  useUpdateUserMutation, 
-  useDeleteUserMutation 
+import { useForm } from 'react-hook-form';
+import {
+  useGetUsersQuery,
+  useCreateUserMutation,
+  useUpdateUserMutation,
+  useDeleteUserMutation,
 } from '@/redux/services/api';
+import Label from '../form/Label';
+import Input from '../form/input/InputField';
+
+interface User {
+  id: number;
+  name: string;
+  username: string;
+  email: string;
+  phone: string;
+  website: string;
+  company: {
+    name: string;
+  };
+}
 
 interface UserFormData {
   name: string;
@@ -16,52 +31,46 @@ interface UserFormData {
   website: string;
 }
 
-const initialFormData: UserFormData = {
-  name: '',
-  username: '',
-  email: '',
-  phone: '',
-  website: ''
-};
-
 const SampleUsers = () => {
   // Using RTK Query hooks
   const { data: users, error, isLoading } = useGetUsersQuery(undefined);
   const [createUser] = useCreateUserMutation();
   const [updateUser] = useUpdateUserMutation();
   const [deleteUser] = useDeleteUserMutation();
-  
-  // State for form data and editing
-  const [formData, setFormData] = useState<UserFormData>(initialFormData);
+
+  // React Hook Form
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm<UserFormData>({
+    mode: 'onBlur',
+  });
+
+  // State for editing and form visibility
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
 
-  // Handle form input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
   // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const onSubmit = async (data: UserFormData) => {
     try {
       if (editingUserId) {
         // Update existing user
-        await updateUser({ id: editingUserId, ...formData });
+        await updateUser({ id: editingUserId, ...data });
       } else {
         // Create new user
         await createUser({
-          ...formData,
+          ...data,
           // These fields are required by the API but not in our form
           company: { name: 'Default Company' },
-          address: { city: '', street: '', suite: '', zipcode: '' }
+          address: { city: '', street: '', suite: '', zipcode: '' },
         });
       }
-      
+
       // Reset form
-      setFormData(initialFormData);
+      reset();
       setEditingUserId(null);
       setIsFormVisible(false);
     } catch (err) {
@@ -70,15 +79,13 @@ const SampleUsers = () => {
   };
 
   // Start editing a user
-  const handleEdit = (user: any) => {
+  const handleEdit = (user: User) => {
     setEditingUserId(user.id);
-    setFormData({
-      name: user.name,
-      username: user.username,
-      email: user.email,
-      phone: user.phone,
-      website: user.website
-    });
+    setValue('name', user.name);
+    setValue('username', user.username);
+    setValue('email', user.email);
+    setValue('phone', user.phone);
+    setValue('website', user.website);
     setIsFormVisible(true);
   };
 
@@ -97,9 +104,9 @@ const SampleUsers = () => {
     <div className="mt-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">Sample Users</h2>
-        <button 
+        <button
           onClick={() => {
-            setFormData(initialFormData);
+            reset();
             setEditingUserId(null);
             setIsFormVisible(!isFormVisible);
           }}
@@ -108,67 +115,55 @@ const SampleUsers = () => {
           {isFormVisible ? 'Cancel' : 'Add User'}
         </button>
       </div>
-      
+
       {isFormVisible && (
-        <form onSubmit={handleSubmit} className="mb-6 p-4 border rounded-md bg-gray-50">
+        <form onSubmit={handleSubmit(onSubmit)} className="mb-6 p-4 border rounded-md bg-gray-50">
           <h3 className="mb-4 font-bold">{editingUserId ? 'Edit User' : 'Add New User'}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block mb-1">Name</label>
-              <input
+              <Label>Name</Label>
+              <Input
+                {...register('name', { required: 'Name is required.' })}
                 type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-                required
+                error={!!errors.name}
+                hint={errors.name?.message}
               />
             </div>
             <div>
-              <label className="block mb-1">Username</label>
-              <input
+              <Label>Username</Label>
+              <Input
+                {...register('username', { required: 'Username is required.' })}
                 type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-                required
+                error={!!errors.username}
+                hint={errors.username?.message}
               />
             </div>
             <div>
-              <label className="block mb-1">Email</label>
-              <input
+              <Label>Email</Label>
+              <Input
+                {...register('email', {
+                  required: 'Email is required.',
+                  pattern: {
+                    value: /\S+@\S+\.\S+/,
+                    message: 'Entered value does not match email format.',
+                  },
+                })}
                 type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-                required
+                error={!!errors.email}
+                hint={errors.email?.message}
               />
             </div>
             <div>
-              <label className="block mb-1">Phone</label>
-              <input
-                type="text"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-              />
+              <Label>Phone</Label>
+              <Input {...register('phone')} type="text" />
             </div>
             <div>
-              <label className="block mb-1">Website</label>
-              <input
-                type="text"
-                name="website"
-                value={formData.website}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-              />
+              <Label>Website</Label>
+              <Input {...register('website')} type="text" />
             </div>
           </div>
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
           >
             {editingUserId ? 'Update' : 'Create'}
@@ -180,19 +175,19 @@ const SampleUsers = () => {
         {isLoading ? (
           <p>Loading users...</p>
         ) : error ? (
-          <p>Error: {(error as any).message}</p>
+          <p>Error: {'data' in error ? JSON.stringify(error.data) : 'message' in error ? error.message : 'An error occurred'}</p>
         ) : (
           <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
-            {users?.map((user: any) => (
+            {users?.map((user: User) => (
               <li key={user.id} className="border p-4 rounded-md relative">
                 <div className="absolute top-2 right-2 flex space-x-2">
-                  <button 
+                  <button
                     onClick={() => handleEdit(user)}
                     className="p-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
                   >
                     Edit
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleDelete(user.id)}
                     className="p-1 bg-red-100 text-red-600 rounded hover:bg-red-200"
                   >

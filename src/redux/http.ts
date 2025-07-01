@@ -1,23 +1,27 @@
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { store } from '../redux/store';
 import { clearToken } from './features/AuthSlice';
 import { useRouter } from 'next/router';
 import { useDispatch } from 'react-redux';
-import { setCookie,getCookie } from '@/utils/cookie';
+import { setCookie, getCookie } from '@/utils/cookie';
 
 const http = axios.create({
   baseURL: `${process.env.NEXT_PUBLIC_APP_BASE_URL}/api`,
 });
 
 http.interceptors.request.use(
-  (config: any) => {
+  (config: InternalAxiosRequestConfig) => {
     const state = store.getState();
     const token = state.auth.token;
-    console.log("token",token);
+    console.log("token", token);
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      if (config.headers) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
-    config.headers["Content-Type"] = "multipart/form-data";
+    if (config.headers) {
+      config.headers["Content-Type"] = "multipart/form-data";
+    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -36,7 +40,7 @@ http.interceptors.response.use(
 
 const ensureToken = async () => {
   const res = await getCookie('userInfo');
-  const response = res ? JSON.parse(res) : null;
+  const response = res ? JSON.parse(res) as { status: number; data: { userData: { token: string } } } : null;
   if (response?.status === 200) {
     const userInfo = response.data.userData;
     const token = userInfo.token;
@@ -50,9 +54,12 @@ const ensureToken = async () => {
   }
 };
 
-export const login = async (uri: string, data: any) => {
+export const login = async (uri: string, data: FormData) => {
   try {
-    const response: AxiosResponse<any> = await http.post(uri, data);
+    const response: AxiosResponse<{
+      admin: { id: string; name: string; email: string };
+      token: string
+    }> = await http.post(uri, data);
     const apiFormData = new FormData();
     const admin = response.data.admin;
     apiFormData.append('token', response.data.token);
@@ -62,9 +69,9 @@ export const login = async (uri: string, data: any) => {
 
     setCookie('userInfo', apiFormData);
     return response;
-  } catch (error: any) {
-    if (error.status === 422) {
-      return error;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 422) {
+      return error.response;
     }
     throw error;
   }
@@ -76,23 +83,29 @@ export const fetchDataWithToken = async (uri: string) => {
     const response = await http.get(uri);
     console.log(response);
     return response.data;
-  } catch (error: any) {
+  } catch (error) {
     console.log(error);
-    throw error.response.data;
+    if (axios.isAxiosError(error) && error.response) {
+      throw error.response.data;
+    }
+    throw error;
   }
 };
 
-export const postDataWithToken = async (uri: string,  data: any) => {
+export const postDataWithToken = async (uri: string, data: FormData) => {
   try {
     await ensureToken();
-    const response = await http.post(uri,data);
+    const response = await http.post(uri, data);
     return response.data;
-  } catch (error: any) {
-    throw error.response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw error.response.data;
+    }
+    throw error;
   }
 };
 
-export const logout = () => {
+export const useLogout = () => {
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -101,7 +114,7 @@ export const logout = () => {
       await http.post('/admin/logout');
       dispatch(clearToken());
       router.push('/login');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Logout failed', error);
     }
   };
@@ -109,4 +122,5 @@ export const logout = () => {
   return logout;
 };
 
-export default { http, login, fetchDataWithToken, postDataWithToken };
+const api = { http, login, fetchDataWithToken, postDataWithToken };
+export default api;
