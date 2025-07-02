@@ -79,7 +79,7 @@ export const login = async (uri: string, data: FormData) => {
 
 export const fetchDataWithToken = async (uri: string) => {
   try {
-    // await ensureToken();
+    await ensureToken();
     const response = await http.get(uri);
     console.log(response);
     return response.data;
