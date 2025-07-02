@@ -3,6 +3,7 @@ import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import Button from "@/components/ui/button/Button";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
+import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
 
@@ -19,15 +20,21 @@ export default function SignInForm() {
           Back to dashboard
         </Link>
       </div>
-      <div className="flex flex-col justify-center p-8 flex-1 w-full max-w-md mx-auto rounded-sm border border-stroke bg-white/80 dark:bg-black/60 backdrop-blur-sm shadow-2xl dark:border-strokedark">
-        <div>
-          <div className="mb-5 sm:mb-8">
+      <div className="flex flex-col justify-center  flex-1 w-full max-w-md mx-auto ">
+        <div className="rounded-sm px-12 py-10 w-full border border-stroke bg-white/80 dark:bg-black/60 backdrop-blur-sm shadow-2xl dark:border-strokedark">
+          <div className=" mb-2 text-center sm:mb-0">
+            <Link href="/" className="mb-5 inline-block">
+              <Image
+                src="/images/logo/logo-icon.svg"
+                alt="Logo"
+                width={48}
+                height={48}
+              />
+            </Link>
             <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
               Sign In
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Enter your email and password to sign in!
-            </p>
+       
           </div>
           <div>
          
