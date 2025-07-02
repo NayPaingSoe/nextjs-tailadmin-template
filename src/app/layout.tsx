@@ -4,7 +4,7 @@ import './globals.css';
 import { SidebarProvider } from '@/context/SidebarContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { Providers } from '@/redux/provider';
-
+import { Toaster } from '@/components/ui/sonner';
 const outfit = Outfit({
   subsets: ["latin"],
 });
@@ -20,6 +20,7 @@ export default function RootLayout({
         <ThemeProvider>
           <SidebarProvider>
             <Providers>{children}</Providers>
+            <Toaster position="top-right" />
           </SidebarProvider>
         </ThemeProvider>
       </body>

@@ -5,27 +5,73 @@ import Button from "@/components/ui/button/Button";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import React, { useState } from "react";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { useAppDispatch } from "@/redux/hook";
+import { setToken, setUserData } from "@/redux/features/AuthSlice";
+import http from "@/redux/http";
 
 type SignInFormValues = {
   email: string;
   password: string;
 };
+type Errors = {
+  email?: string[];
+  password?: string[];
+};
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [apiErrors, setApiErrors] = useState<Errors>({});
+  const dispatch = useAppDispatch();
+  const router = useRouter();
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<SignInFormValues>({
-    mode: 'onTouched',
-  });
+  } = useForm<SignInFormValues>({ mode: "onTouched" });
 
-  const onSubmit: SubmitHandler<SignInFormValues> = (data) => {
-    // Handle form submission logic, e.g., API call
-    console.log(data);
+  const onSubmit: SubmitHandler<SignInFormValues> = async (data) => {
+    setLoading(true);
+    setApiErrors({});
+    console.log(apiErrors, "apiErrors");
+
+    try {
+      const formData = new FormData();
+      formData.append("email", data.email);
+      formData.append("password", data.password);
+
+      const response = await http.login("/admin/login", formData);
+
+      if (response.status === 422 && response.data.errors) {
+        const apiErrors: Errors = response.data.errors;
+        setApiErrors(apiErrors);
+      } else if (response.status === 200) {
+        const { admin } = response.data;
+        dispatch(setToken(response.data.token));
+        dispatch(
+          setUserData({ id: admin.id, name: admin.name, email: admin.email })
+        );
+
+        toast.success("Login successful!", {
+          description: "Welcome back!",
+        });
+
+        const redirectUrl = `/dashboard`;
+        router.push(redirectUrl);
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setApiErrors({ email: ['Login failed. Please check your credentials.'] });
+      toast.error("Login failed.", {
+        description: "Please check your credentials and try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full">
@@ -52,15 +98,13 @@ export default function SignInForm() {
             <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
               Sign In
             </h1>
-       
           </div>
           <div>
-         
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className="space-y-6">
                 <div>
                   <Label>
-                    Email <span className="text-error-500">*</span>{" "}
+                    Email <span className="text-error-500">*</span>
                   </Label>
                   <Input
                     placeholder="info@gmail.com"
@@ -72,18 +116,17 @@ export default function SignInForm() {
                         message: 'Please enter a valid email address.',
                       },
                     })}
-                      error={!!errors.email}
-                      hint={errors.email?.message}
+                    error={!!errors.email}
+                    hint={errors.email?.message}
                   />
-               
                 </div>
                 <div>
                   <Label>
-                    Password <span className="text-error-500">*</span>{" "}
+                    Password <span className="text-error-500">*</span>
                   </Label>
                   <div className="relative">
                     <Input
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Enter your password"
                       {...register('password', {
                         required: 'Password is required.',
@@ -106,17 +149,18 @@ export default function SignInForm() {
                       )}
                     </span>
                   </div>
-              
                 </div>
                 <div>
-                  <Button className="w-full" size="sm" >
-                    Sign in
+                  <Button
+                    className="w-full"
+                    size="sm"
+                    disabled={loading}
+                  >
+                    {loading ? "Signing In..." : "Sign In"}
                   </Button>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-         
-                  </div>
+                  <div className="flex items-center gap-3"></div>
                   <Link
                     href="/reset-password"
                     className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
@@ -124,10 +168,8 @@ export default function SignInForm() {
                     Forgot password?
                   </Link>
                 </div>
-
               </div>
             </form>
-
           </div>
         </div>
       </div>
