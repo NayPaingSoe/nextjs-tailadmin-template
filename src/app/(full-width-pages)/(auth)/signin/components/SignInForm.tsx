@@ -5,10 +5,28 @@ import Button from "@/components/ui/button/Button";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import { useForm, SubmitHandler } from 'react-hook-form';
+
+type SignInFormValues = {
+  email: string;
+  password: string;
+};
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignInFormValues>({
+    mode: 'onTouched',
+  });
+
+  const onSubmit: SubmitHandler<SignInFormValues> = (data) => {
+    // Handle form submission logic, e.g., API call
+    console.log(data);
+  };
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full">
       <div className="w-full max-w-md sm:pt-10 mx-auto mb-5">
@@ -38,13 +56,26 @@ export default function SignInForm() {
           </div>
           <div>
          
-            <form>
+            <form onSubmit={handleSubmit(onSubmit)}>
               <div className="space-y-6">
                 <div>
                   <Label>
                     Email <span className="text-error-500">*</span>{" "}
                   </Label>
-                  <Input placeholder="info@gmail.com" type="email" />
+                  <Input
+                    placeholder="info@gmail.com"
+                    type="email"
+                    {...register('email', {
+                      required: 'Email is required.',
+                      pattern: {
+                        value: /^\S+@\S+$/i,
+                        message: 'Please enter a valid email address.',
+                      },
+                    })}
+                      error={!!errors.email}
+                      hint={errors.email?.message}
+                  />
+               
                 </div>
                 <div>
                   <Label>
@@ -54,6 +85,15 @@ export default function SignInForm() {
                     <Input
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
+                      {...register('password', {
+                        required: 'Password is required.',
+                        minLength: {
+                          value: 8,
+                          message: 'Password must be at least 8 characters long.',
+                        },
+                      })}
+                      error={!!errors.password}
+                      hint={errors.password?.message}
                     />
                     <span
                       onClick={() => setShowPassword(!showPassword)}
@@ -66,18 +106,16 @@ export default function SignInForm() {
                       )}
                     </span>
                   </div>
+              
                 </div>
                 <div>
-                  <Button className="w-full" size="sm">
+                  <Button className="w-full" size="sm" >
                     Sign in
                   </Button>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    {/* <Checkbox checked={isChecked} onChange={setIsChecked} />
-                    <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
-                      Keep me logged in
-                    </span> */}
+         
                   </div>
                   <Link
                     href="/reset-password"
