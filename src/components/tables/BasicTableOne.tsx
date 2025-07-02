@@ -1,3 +1,4 @@
+"use client"
 import React from "react";
 import {
   Table,
@@ -9,6 +10,7 @@ import {
 
 import Badge from "../ui/badge/Badge";
 import Image from "next/image";
+import Pagination from "./Pagination";
 
 interface Order {
   id: number;
@@ -218,6 +220,7 @@ export default function BasicTableOne() {
                 </TableRow>
               ))}
             </TableBody>
+            <Pagination currentPage={1} totalPages={5} onPageChange={(page) => {return page++}}/>
           </Table>
         </div>
       </div>
