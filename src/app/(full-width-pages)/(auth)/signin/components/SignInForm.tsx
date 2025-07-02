@@ -25,19 +25,17 @@ type Errors = {
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [apiErrors, setApiErrors] = useState<Errors>({});
   const dispatch = useAppDispatch();
   const router = useRouter();
   const {
     register,
+    setError,
     handleSubmit,
     formState: { errors },
   } = useForm<SignInFormValues>({ mode: "onTouched" });
 
   const onSubmit: SubmitHandler<SignInFormValues> = async (data) => {
     setLoading(true);
-    setApiErrors({});
-    console.log(apiErrors, "apiErrors");
 
     try {
       const formData = new FormData();
@@ -48,7 +46,13 @@ export default function SignInForm() {
 
       if (response.status === 422 && response.data.errors) {
         const apiErrors: Errors = response.data.errors;
-        setApiErrors(apiErrors);
+        // Set errors for specific fields from the API response
+        (Object.keys(apiErrors) as Array<keyof Errors>).forEach((key) => {
+          const message = apiErrors[key]?.[0];
+          if (message) {
+            setError(key, { type: "manual", message });
+          }
+        });
       } else if (response.status === 200) {
         const { admin } = response.data;
         dispatch(setToken(response.data.token));
@@ -65,7 +69,6 @@ export default function SignInForm() {
       }
     } catch (err) {
       console.error("Login error:", err);
-      setApiErrors({ email: ['Login failed. Please check your credentials.'] });
       toast.error("Login failed.", {
         description: "Please check your credentials and try again.",
       });
@@ -155,6 +158,7 @@ export default function SignInForm() {
                     className="w-full"
                     size="sm"
                     disabled={loading}
+                    type="submit"
                   >
                     {loading ? "Signing In..." : "Sign In"}
                   </Button>
